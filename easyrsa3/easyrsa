@@ -289,9 +289,12 @@ EASYRSA_PKI env-var undefined"
 	# Verify EASYRSA_OPENSSL command gives expected output
 	if [ -z "$EASYRSA_SSL_OK" ]; then
 		local val="$("$EASYRSA_OPENSSL" version)"
-		[ "${val%% *}" = "OpenSSL" ] || die "\
+		case "${val%% *}" in
+			OpenSSL|LibreSSL) ;;
+			*) die "\
 Missing or invalid OpenSSL
 Expected to find openssl command at: $EASYRSA_OPENSSL"
+		esac
 	fi
 	EASYRSA_SSL_OK=1
 
@@ -523,7 +526,7 @@ Continuing with key generation will replace this key."
 	# When EASYRSA_EXTRA_EXTS is defined, append it to openssl's [req] section:
 	if [ -n "$EASYRSA_EXTRA_EXTS" ]; then
 		# Setup & insert the extra ext data keyed by a magic line
-		EASYRSA_EXTRA_EXTS="
+		local extra_exts="
 req_extensions = req_extra
 [ req_extra ]
 $EASYRSA_EXTRA_EXTS"
@@ -532,7 +535,7 @@ $EASYRSA_EXTRA_EXTS"
 	{ while ( getline<"/dev/stdin" ) {print} next }
  {print}
 }'
-		print "$EASYRSA_EXTRA_EXTS" | \
+		print "$extra_exts" | \
 			awk "$awkscript" "$EASYRSA_SSL_CONF" \
 			> "$EASYRSA_TEMP_FILE" \
 			|| die "Copying SSL config to temp file failed"
