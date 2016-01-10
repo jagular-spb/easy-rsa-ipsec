@@ -657,6 +657,8 @@ Certificate created at: $crt_out
 build_full() {
 	verify_ca_init
 
+	"$EASYRSA_OPENSSL" rand -hex 16 > "$EASYRSA_PKI/serial"
+
 	# pull filename base:
 	[ -n "$2" ] || die "\
 Error: didn't find a file base name as the first argument.
