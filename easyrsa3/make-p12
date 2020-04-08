@@ -41,7 +41,8 @@ elif [[ ! "${pass}" = "nopass" ]] && [[ ! -f "pki/private/${name}.key" ]]; then
   echo "${name}, ${pass}, ${current_ip}" >> users_out.txt
 
 elif  [[ -f "pki/private/${name}.key" ]]; then
-  echo "Key for ${name} already exsists"
+  echo "Key for ${name} already exsists\n Try to renew cert\p12"
+  exit 1
 fi
 
 current_ip=$current_ip+1
