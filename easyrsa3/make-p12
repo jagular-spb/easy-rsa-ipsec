@@ -50,6 +50,4 @@ fi
 
 current_ip=$current_ip+1
 echo $current_ip > latest_ip.txt
-./easyrsa gen-crl
-
-echo "---> RESULTS in pki/private"
+./easyrsa gen-crl > /dev/null 2>&1
