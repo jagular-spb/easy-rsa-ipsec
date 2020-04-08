@@ -41,7 +41,7 @@ elif [[ ! "${pass}" = "nopass" ]] && [[ ! -f "pki/private/${name}.key" ]]; then
   echo "${name}, ${pass}, ${current_ip}" >> users_out.txt
 
   echo -e "---> RESULTS:\n New private key & pkcs12 container are stored at pki/private"
-  echo -e "             key: ${name}.key\npkcs12: ${name}.p12\npass: ${pass}"
+  echo -e "             key: ${name}.key\n             pkcs12: ${name}.p12\n             pass: ${pass}"
 
 elif  [[ -f "pki/private/${name}.key" ]]; then
   echo -e "Key for ${name} already exsists\nTry to use renew-p12 ${name}"
