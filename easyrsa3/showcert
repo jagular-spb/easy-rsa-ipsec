@@ -1,0 +1,8 @@
+#!/bin/env bash
+
+if [ -z $@]; then
+echo -e "Usage: $0 cert_name\n Eaxmple: $0 user.navigat.ru"
+exit 
+fi
+
+./easyrsa show-cert $1

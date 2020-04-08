@@ -1,0 +1,22 @@
+#!/bin/env bash
+
+if [[ -z "$@" ]]; then
+   printf "Generate keys with given name,\nwith custom expiration date\nand export it to pkcs12 format\n\n Usage: $0 <cert_name> <days_to_expire> <nopass to gen without password> \n(for example: $0 users.navigat.ru 30 nopass)\n"
+      exit 1
+fi
+
+days="${2:-30}"
+nopass="${3:false}"
+
+if [[ "${nopass}" = "nopass" ]]; then
+  ./easyrsa --days="${days}" sign-req client "${1}"
+  ./easyrsa export-p12 "${1}" "nopass"
+else
+  ./easyrsa --days="${days}" sign-req client "${1}"
+  ./easyrsa export-p12 "${1}"
+fi
+
+./easyrsa gen-crl
+
+
+echo "---> RESULTS in pki/private"

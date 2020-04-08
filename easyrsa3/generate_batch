@@ -1,0 +1,68 @@
+#!/bin/env bash
+
+if [[ -z "$@" ]]; then
+   printf "Generate keys with names from provided file,\nwith custom expiration date\nand export it to pkcs12 format\n\n Usage: $0 <file_name> <days_to_expire> <nopass to gen without password> \n(for example: $0 users.txt 30 nopass)\n"
+      exit 1
+fi
+
+days="${2:-30}"
+nopass="${3:false}"
+curr_date="$(date '+%Y%m%d-%H:%M:%S')"
+echo -e "------------${curr_date}----------------\n" >> users_out.txt
+read latest_ip < latest_ip.txt
+declare -i current_ip=($latest_ip)
+
+
+while read p; do
+ echo "processing ${p}"
+ name="${p%%,*}"
+ pass="${p##*,}"
+ [[ "${pass}" == "${name}" ]] || [[ -z "${pass}" ]] && pass="$(< /dev/urandom tr -dc 0-9 | head -c5)"
+ echo "name: ${name} pass: ${pass}"
+ 
+ if [[ "${nopass}" = "nopass" ]] && [[ ! -f "pki/private/${name}.key" ]]; then
+
+  ./easyrsa --days="${days}" build-client-full  "${name}" "nopass"
+  ./easyrsa export-p12 "${name}" "nopass"
+
+  echo "ifconfig-push 10.11.162.${current_ip} 255.255.255.0" > "/etc/openvpn/auto_gen_ccd_files/${name}"
+  echo -e 'push "dhcp-option DNS 10.10.16.1"\npush "dhcp-option DOMAIN navigator.private"' >> "/etc/openvpn/auto_gen_ccd_files/${name}"
+  echo -e 'comp-lzo yes\npush "comp-lzo yes"\n' >> "/etc/openvpn/auto_gen_ccd_files/${name}"
+  echo 'push "route 10.10.16.0 255.255.255.0"' >> "/etc/openvpn/auto_gen_ccd_files/${name}"
+  echo "${name}, nopass, ${current_ip}" >> users_out.txt
+
+  current_ip=$current_ip+1
+  
+ elif [[ "${nopass}" = "nopass" ]] && [[ -f "pki/private/${name}.key" ]]; then
+
+  ./easyrsa export-p12 "${name}" "nopass"
+  echo "${name}, nopass, ${current_ip}" >> users_out.txt
+  
+ elif [[ ! "${nopass}" = "nopass" ]] && [[ ! -f "pki/private/${name}.key" ]]; then
+  
+
+  ./easyrsa --days="${days}" build-client-full  "${name}" "nopass"
+  ./easyrsa --passout=pass:"${pass}" export-p12 "${name}"
+
+  echo "ifconfig-push 10.11.162.${current_ip} 255.255.255.0" > "/etc/openvpn/auto_gen_ccd_files/${name}"
+  echo -e 'push "dhcp-option DNS 10.10.16.1"\npush "dhcp-option DOMAIN navigator.private"' >> "/etc/openvpn/auto_gen_ccd_files/${name}"
+  echo -e 'comp-lzo yes\npush "comp-lzo yes"\n' >> "/etc/openvpn/auto_gen_ccd_files/${name}"
+  echo 'push "route 10.10.16.0 255.255.255.0"' >> "/etc/openvpn/auto_gen_ccd_files/${name}" 
+  echo "${name}, ${pass}, ${current_ip}" >> users_out.txt
+
+  current_ip=$current_ip+1
+
+ elif [[ ! "${nopass}" = "nopass" ]] && [[ -f "pki/private/${name}.key" ]]; then
+
+  ./easyrsa --passout=pass:"${pass}" export-p12 "${name}"
+  echo "${name}, ${pass}, ${current_ip}" >> users_out.txt
+
+ else
+  echo "Dont know whats going on"
+ fi
+ 
+ 
+done < "${1}"
+
+echo $current_ip > latest_ip.txt
+./easyrsa gen-crl
