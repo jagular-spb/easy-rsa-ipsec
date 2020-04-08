@@ -29,6 +29,9 @@ if [[ "${pass}" = "nopass" ]] && [[ ! -f "pki/private/${name}.key" ]]; then
   echo 'push "route 10.10.16.0 255.255.255.0"' >> "/etc/openvpn/auto_gen_ccd_files/${name}"
   echo "${name}, nopass, ${current_ip}" >> users_out.txt
 
+  echo -e "---> RESULTS:\n New private key & pkcs12 container are stored at pki/private"
+  echo -e "             key: ${name}.key\n             pkcs12: ${name}.p12\n             pass: ${pass}"
+
 elif [[ ! "${pass}" = "nopass" ]] && [[ ! -f "pki/private/${name}.key" ]]; then
 
   ./easyrsa --days="${days}" build-client-full  "${name}" "nopass"
