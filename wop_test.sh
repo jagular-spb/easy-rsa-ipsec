@@ -6,6 +6,8 @@
 # project; use with other POSIX shells for Windows may require modification to
 # this wrapper script.
 
+cd easyrsa3 || { echo "ERROR: Cannot find easyrsa3 direcory"; exit 1; }
+
 setup_path="${EASYRSA:-$PWD}"
 export PATH="$setup_path;$setup_path/bin;$PATH"
 export HOME="$setup_path"
@@ -63,5 +65,6 @@ echo "Easy-RSA 3 is available under a GNU GPLv2 license."
 echo ""
 echo "Invoke './easyrsa' to call the program. Without commands, help is displayed."
 
-# Drop to a shell and await input
-bin/sh
+cd ..
+
+./op_test.sh -vv

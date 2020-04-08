@@ -1,6 +1,4 @@
-# For use with Easy-RSA 3.0 and OpenSSL 1.0.*
-
-RANDFILE		= $ENV::EASYRSA_PKI/.rnd
+# For use with Easy-RSA 3.0+ and OpenSSL or LibreSSL
 
 ####################################################################
 [ ca ]
@@ -21,7 +19,7 @@ crl		= $dir/crl.pem 		# The current CRL
 private_key	= $dir/private/ca.key	# The private key
 RANDFILE	= $dir/.rand		# private random number file
 
-x509_extensions	= basic_exts		# The extentions to add to the cert
+x509_extensions	= basic_exts		# The extensions to add to the cert
 
 # This allows a V2 CRL. Ancient browsers don't like it, but anything Easy-RSA
 # is designed for will. In return, we get the Issuer attached to CRLs.
@@ -32,7 +30,10 @@ default_crl_days= $ENV::EASYRSA_CRL_DAYS	# how long before next CRL
 default_md	= $ENV::EASYRSA_DIGEST		# use public key default MD
 preserve	= no			# keep passed DN ordering
 
-# A few difference way of specifying how similar the request should look
+# This allows to renew certificates which have not been revoked
+unique_subject	= no
+
+# A few different ways of specifying how similar the request should look
 # For type CA, the listed attributes must be the same, and the optional
 # and supplied fields are just that :-)
 policy		= policy_anything
@@ -56,7 +57,7 @@ default_bits		= $ENV::EASYRSA_KEY_SIZE
 default_keyfile 	= privkey.pem
 default_md		= $ENV::EASYRSA_DIGEST
 distinguished_name	= $ENV::EASYRSA_DN
-x509_extensions		= easyrsa_ca	# The extentions to add to the self signed cert
+x509_extensions		= easyrsa_ca	# The extensions to add to the self signed cert
 
 # A placeholder to handle the $EXTRA_EXTS feature:
 #%EXTRA_EXTS%	# Do NOT remove or change this line as $EXTRA_EXTS support requires it
