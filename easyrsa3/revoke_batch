@@ -1,0 +1,33 @@
+#!/bin/env bash
+
+if [[ -z "$@" ]]; then
+   printf "Generate keys with names from provided file,\nwith custom expiration date\nand export it to pkcs12 format\n\n Usage: $0 <file_name> <days_to_expire> <nopass to gen without password> \n(for example: $0 users.txt 30 nopass)\n"
+      exit 1
+fi
+
+debug="${2}"
+curr_date="$(date '+%Y%m%d-%H:%M:%S')"
+echo -e "------------${curr_date}----------------\n" >> users_out.txt
+
+
+while read p; do
+ echo "processing ${p}"
+ name="${p%%,*}"
+ 
+ if [[ -z ${debug} ]] && [[ -f "pki/private/${name}.key" ]]; then
+
+  ./easyrsa revoke "${name}"
+  echo "${name}, revoked, -- " >> users_out.txt
+  
+ elif [[ ! -z "${debug}" ]] && [[ -f "pki/private/${name}.key" ]]; then
+  
+  echo "./easyrsa revoke  ${name}"
+
+ else
+  echo "Dont know whats going on"
+ fi
+ 
+ 
+done < "${1}"
+
+./easyrsa gen-crl
