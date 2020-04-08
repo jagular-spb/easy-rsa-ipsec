@@ -5,31 +5,47 @@ if [[ -z "$@" ]]; then
       exit 1
 fi
 
+name="${1}"
 days="${2:-30}"
-nopass="${3:false}"
+pass="${3:nopass}"
 
+curr_date="$(date '+%Y%m%d-%H:%M:%S')"
+echo -e "------------${curr_date}----------------\n" >> users_out.txt
 read latest_ip < latest_ip.txt
 declare -i current_ip=($latest_ip)
 
+[[ "${pass}" == "${name}" ]] || [[ -z "${pass}" ]] && pass="$(< /dev/urandom tr -dc 0-9 | head -c5)"
+ echo "name: ${name} pass: ${pass}"
 
 
-if [[ "${nopass}" = "nopass" ]]; then
-  ./easyrsa --days="${days}" build-client-full  "${1}" "nopass"
-  ./easyrsa export-p12 "${1}" "nopass"
-else
-  ./easyrsa --days="${days}" build-client-full  "${1}" "nopass"
-  ./easyrsa export-p12 "${1}"
+if [[ "${pass}" = "nopass" ]] && [[ ! -f "pki/private/${name}.key" ]]; then
+
+  ./easyrsa --days="${days}" build-client-full  "${name}" "nopass"
+  ./easyrsa export-p12 "${name}" "nopass"
+
+  echo "ifconfig-push 10.11.162.${current_ip} 255.255.255.0" > "/etc/openvpn/auto_gen_ccd_files/${name}"
+  echo -e 'push "dhcp-option DNS 10.10.16.1"\npush "dhcp-option DOMAIN navigator.private"' >> "/etc/openvpn/auto_gen_ccd_files/${name}"
+  echo -e 'comp-lzo yes\npush "comp-lzo yes"\n' >> "/etc/openvpn/auto_gen_ccd_files/${name}"
+  echo 'push "route 10.10.16.0 255.255.255.0"' >> "/etc/openvpn/auto_gen_ccd_files/${name}"
+  echo "${name}, nopass, ${current_ip}" >> users_out.txt
+
+elif [[ ! "${pass}" = "nopass" ]] && [[ ! -f "pki/private/${name}.key" ]]; then
+
+  ./easyrsa --days="${days}" build-client-full  "${name}" "nopass"
+  ./easyrsa --passout=pass:"${pass}" export-p12 "${name}"
+
+  echo "ifconfig-push 10.11.162.${current_ip} 255.255.255.0" > "/etc/openvpn/auto_gen_ccd_files/${name}"
+  echo -e 'push "dhcp-option DNS 10.10.16.1"\npush "dhcp-option DOMAIN navigator.private"' >> "/etc/openvpn/auto_gen_ccd_files/${name}"
+  echo -e 'comp-lzo yes\npush "comp-lzo yes"\n' >> "/etc/openvpn/auto_gen_ccd_files/${name}"
+  echo 'push "route 10.10.16.0 255.255.255.0"' >> "/etc/openvpn/auto_gen_ccd_files/${name}"
+  echo "${name}, ${pass}, ${current_ip}" >> users_out.txt
+
+elif  [[ -f "pki/private/${name}.key" ]]; then
+  echo "Key for ${name} already exsists"
 fi
+
 current_ip=$current_ip+1
-
-if [ $? = 0 ]; then
-  echo "ifconfig-push 10.11.162.${current_ip} 255.255.255.0" > "/etc/openvpn/auto_gen_ccd_files/${1}"
-  echo -e 'push "dhcp-option DNS 10.10.16.1"\npush "dhcp-option DOMAIN navigator.private"' >> "/etc/openvpn/auto_gen_ccd_files/${1}"
-  echo -e 'comp-lzo yes\npush "comp-lzo yes"\n' >> "/etc/openvpn/auto_gen_ccd_files/${1}"
-  echo 'push "10.10.16.0 255.255.255.0"' >> "/etc/openvpn/auto_gen_ccd_files/${1}"
-  echo $current_ip > latest_ip.txt
-
-fi
+echo $current_ip > latest_ip.txt
 ./easyrsa gen-crl
 
 
