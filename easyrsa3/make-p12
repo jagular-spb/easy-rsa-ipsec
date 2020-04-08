@@ -7,16 +7,16 @@ fi
 
 name="${1}"
 days="${2:-30}"
-pass="${3:nopass}"
+pass="${3:-nopass}"
 
 curr_date="$(date '+%Y%m%d-%H:%M:%S')"
 echo -e "------------${curr_date}----------------\n" >> users_out.txt
 read latest_ip < latest_ip.txt
 declare -i current_ip=($latest_ip)
 
-[[ "${pass}" == "${name}" ]] || [[ -z "${pass}" ]] && pass="$(< /dev/urandom tr -dc 0-9 | head -c5)"
- echo "name: ${name} pass: ${pass}"
+[[ "${pass}" == "random" ]] && pass="$(< /dev/urandom tr -dc 0-9 | head -c5)"
 
+echo "name: ${name} pass: ${pass}"
 
 if [[ "${pass}" = "nopass" ]] && [[ ! -f "pki/private/${name}.key" ]]; then
 
