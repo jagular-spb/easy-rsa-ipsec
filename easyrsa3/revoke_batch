@@ -16,7 +16,7 @@ while read p; do
  
  if [[ -z ${debug} ]] && [[ -f "pki/private/${name}.key" ]]; then
 
-  ./easyrsa revoke "${name}"
+  ./easyrsa --batch revoke "${name}"
   echo "${name}, revoked, -- " >> users_out.txt
   
  elif [[ ! -z "${debug}" ]] && [[ -f "pki/private/${name}.key" ]]; then

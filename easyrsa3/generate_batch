@@ -10,7 +10,7 @@ nopass="${3:false}"
 force="${4:false}"
 
 curr_date="$(date '+%Y%m%d-%H:%M:%S')"
-echo -e "------------${curr_date}----------------\n" >> users_out.txt
+echo -e "\n------------${curr_date}----------------\n" >> users_out.txt
 read latest_ip < latest_ip.txt
 declare -i current_ip=($latest_ip)
 
@@ -58,7 +58,7 @@ while read p; do
   ./easyrsa --passout=pass:"${pass}" export-p12 "${name}"
   echo "${name}, ${pass}, -- " >> users_out.txt
 
- elif [[ ! "${nopass}" = "nopass" ]] && [[ -f "pki/private/${name}.key" ]] && [[ -f "pki/private/${name}.p12" ]] && [[ "${force}" == "true" ]]; then
+ elif [[ ! "${nopass}" = "nopass" ]] && [[ -f "pki/private/${name}.key" ]] && [[ -f "pki/private/${name}.p12" ]] && [[ "${force}" = "true" ]]; then
 
   ./easyrsa --passout=pass:"${pass}" export-p12 "${name}"
   echo "${name}, ${pass}, forced new pin" >> users_out.txt
